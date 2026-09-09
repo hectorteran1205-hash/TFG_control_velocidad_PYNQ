@@ -1,11 +1,11 @@
 # Control de velocidad de un motor de corriente continua mediante PYNQ-Z2
 
 <p align="center">
-  <img src="imagenes/logo_udc.png"
+  <img src="imagenes/logo_udc.gif"
        alt="Universidade da Coruña"
        height="70">
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="imagenes/logo_epef.png"
+  <img src="imagenes/logo_epef.jpg"
        alt="Escola Politécnica de Enxeñaría de Ferrol"
        height="70">
 </p>
