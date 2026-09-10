@@ -1,0 +1,1 @@
+En esta ubicación se encuentran todos los archivos CSV del proyecto. Comenzando con el usado para obtener los parámetros dinámicos del motor, siguiendo por los tres ensayos de comparación de controlador P, PI y PID, y, terminando con el ensayo de carga.
