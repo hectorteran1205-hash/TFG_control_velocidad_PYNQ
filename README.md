@@ -19,10 +19,10 @@ y Automática de la Universidade da Coruña.
 ## Descripción del proyecto
 
 El proyecto desarrolla un sistema digital de control de velocidad para un
-motorreductor de corriente continua con encoder incremental. La
-implementación utiliza una placa PYNQ-Z2, basada en el dispositivo
-Zynq-7000, que integra en un mismo dispositivo un sistema de procesamiento
-y una región de lógica programable.
+motorreductor de corriente continua con encoder incremental. La implementación
+utiliza una placa PYNQ-Z2, basada en el dispositivo Zynq-7000, que integra en
+un mismo dispositivo un sistema de procesamiento y una región de lógica
+programable.
 
 El lazo de control se ejecuta en la **lógica programable (PL)** de la
 PYNQ-Z2, donde se realizan las siguientes operaciones:
@@ -58,7 +58,7 @@ flowchart TB
     DRIVER["Etapa de potencia<br/>Puente H L298N"]
     MOTOR["Motorreductor DC"]
     ENCODER["Encoder incremental"]
-    SUPPLY["Alimentación del sistema"]
+    SUPPLY["Fuentes de alimentación<br/>5 V y 12 V"]
 
     PC <--> NET
     NET <--> PS
@@ -72,55 +72,45 @@ flowchart TB
 
 ## Organización del repositorio
 
-El contenido del repositorio se divide en dos directorios principales:
+El contenido técnico del repositorio se organiza en dos directorios
+principales:
 
-- [Código fuente](./codigo/): programas y archivos necesarios para
-  implementar y ejecutar el sistema.
-- [Datos experimentales](./datos-ensayos/): archivos CSV obtenidos durante
-  la identificación y validación experimental.
+- [Código fuente](https://github.com/hectorteran1205-hash/TFG_control_velocidad_PYNQ/tree/main/codigo):
+  archivos desarrollados para implementar, ejecutar y analizar el sistema.
+- [Archivos de ensayo](https://github.com/hectorteran1205-hash/TFG_control_velocidad_PYNQ/tree/main/archivos_ensayo):
+  datos experimentales obtenidos durante la identificación y validación.
 
-### Código fuente
+El directorio `imagenes` contiene únicamente los recursos gráficos utilizados
+en este README.
 
-El directorio `codigo` contiene los siguientes grupos de archivos:
-
-- Módulos hardware desarrollados en VHDL.
-- Bancos de pruebas utilizados para la simulación.
-- Archivos del overlay de la PYNQ-Z2.
-- Servidor desarrollado mediante Python y Flask.
-- Interfaz gráfica desarrollada mediante React y Vite.
-- Programas de adquisición y análisis realizados en MATLAB.
-
-La organización prevista es:
+La estructura general es la siguiente:
 
 ```text
-codigo/
-├── hardware-vhdl/
-├── overlay-pynq/
-├── servidor-flask/
-├── interfaz-react/
-└── matlab/
+TFG_control_velocidad_PYNQ/
+├── codigo/
+│   ├── hardware/
+│   │   ├── archivos_importantes/
+│   │   └── vhdl/
+│   ├── herramientas_auxiliares/
+│   └── software/
+│       ├── interfaz_web/
+│       └── servidor_pynq/
+├── archivos_ensayo/
+│   ├── comparacion_controladores/
+│   ├── ensayo_carga/
+│   └── identificacion_motor/
+└── imagenes/
 ```
 
-### Datos experimentales
+El directorio `codigo` contiene:
 
-El directorio `datos-ensayos` contiene los archivos CSV generados durante
-los siguientes ensayos:
-
-- Identificación dinámica del conjunto motor-L298N.
-- Seguimiento de velocidad con un controlador proporcional.
-- Seguimiento de velocidad con un controlador PI.
-- Seguimiento de velocidad con un controlador PID.
-- Comparación experimental de los controladores.
-- Respuesta del sistema ante perturbaciones de carga.
-
-La organización prevista es:
-
-```text
-datos-ensayos/
-├── identificacion-motor/
-├── comparacion-controladores/
-└── perturbaciones-carga/
-```
+- Los módulos y bancos de pruebas desarrollados en VHDL.
+- El archivo de restricciones de la PYNQ-Z2.
+- El diseño de bloques realizado en Vivado.
+- Los archivos `.bit` y `.hwh` que forman el overlay.
+- El servidor Python y Flask ejecutado en el PS de la PYNQ-Z2.
+- La interfaz gráfica desarrollada mediante React y Vite.
+- Los programas auxiliares de adquisición y análisis realizados en MATLAB.
 
 ## Elementos principales del sistema
 
@@ -135,8 +125,8 @@ Los principales componentes empleados son:
 
 ## Tecnologías utilizadas
 
-Durante el desarrollo del proyecto se utilizaron las siguientes
-tecnologías y herramientas:
+Durante el desarrollo del proyecto se utilizaron las siguientes tecnologías
+y herramientas:
 
 - VHDL.
 - Vivado Design Suite.
@@ -153,41 +143,54 @@ tecnologías y herramientas:
 
 El funcionamiento del sistema se basa en la siguiente secuencia:
 
-1. El encoder genera las señales digitales asociadas al movimiento del
-   eje del motor.
+1. El encoder genera las señales digitales asociadas al movimiento del eje
+   del motor.
 2. La lógica programable decodifica estas señales y calcula periódicamente
    la velocidad.
-3. El controlador compara la velocidad medida con la referencia
-   establecida.
+3. El controlador compara la velocidad medida con la referencia establecida.
 4. A partir del error se calcula la acción de control.
 5. El generador PWM transforma la acción de control en una señal adecuada
    para el puente H.
 6. El L298N regula la potencia aplicada al motor.
-7. El PS lee las variables del periférico y las proporciona al servidor
-   Flask.
-8. La interfaz React permite configurar y supervisar el sistema desde el
-   ordenador.
+7. El servidor Flask, ejecutado en el PS, accede a los registros del
+   periférico mediante AXI4-Lite.
+8. La interfaz React intercambia órdenes y variables de monitorización con
+   el servidor Flask mediante peticiones HTTP.
 
 ## Puesta en marcha
 
 De forma general, la ejecución del sistema requiere:
 
-1. Copiar los archivos del overlay en la PYNQ-Z2.
-2. Cargar el bitstream y acceder al periférico desde Python.
-3. Ejecutar el servidor Flask en la PYNQ-Z2.
-4. Iniciar la aplicación React en el ordenador.
-5. Acceder a la interfaz gráfica desde el navegador.
-6. Configurar la referencia y las ganancias del controlador.
+1. Copiar los archivos `.bit` y `.hwh` del overlay en la PYNQ-Z2.
+2. Ejecutar `app.py` en la PYNQ-Z2. Este programa carga el overlay, accede
+   al periférico AXI4-Lite e inicia el servidor Flask.
+3. Instalar las dependencias de la interfaz mediante `npm install`, operación
+   necesaria únicamente la primera vez.
+4. Iniciar la aplicación React en el ordenador mediante `npm run dev`.
+5. Acceder a la interfaz desde `http://localhost:5173`.
+6. Configurar la referencia, las ganancias y el sentido de giro.
 7. Arrancar el sistema y supervisar su respuesta en tiempo real.
 
-Las instrucciones específicas y los archivos necesarios se incluyen en
-los directorios correspondientes.
+Durante el funcionamiento deben mantenerse activos tanto el servidor Flask
+de la PYNQ-Z2 como la aplicación React ejecutada en el ordenador.
+
+Las instrucciones específicas y los archivos necesarios se incluyen en los
+directorios correspondientes.
 
 ## Datos experimentales
 
-Los archivos CSV se conservan para permitir la consulta de las medidas,
-la reproducción de las representaciones gráficas y la comprobación de los
+Los archivos CSV se conservan para permitir la consulta de las medidas, la
+reproducción de las representaciones gráficas y la comprobación de los
 resultados incluidos en la memoria.
+
+Los datos disponibles corresponden a:
+
+- La identificación dinámica del conjunto motor-L298N.
+- El seguimiento de velocidad con un controlador proporcional.
+- El seguimiento de velocidad con un controlador PI.
+- El seguimiento de velocidad con un controlador PID.
+- La comparación experimental de los controladores.
+- La respuesta del sistema ante perturbaciones de carga.
 
 Estos archivos contienen, entre otras variables:
 
