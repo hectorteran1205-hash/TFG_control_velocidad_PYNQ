@@ -1,0 +1,1 @@
+En esta ubicación se albergan los principales archivos que describen la página web, son los archivos que se han modificado para que la página alcance el estado final, el resto de ellos no se suben ya que fueron generados automáticamente y no se modfiicaron.
