@@ -47,10 +47,7 @@ end pid_controller;
 
 architecture Behavioral of pid_controller is
 
-
-    --------------------------------------------------------------------
     -- MÁQUINA DE ESTADOS
-    --------------------------------------------------------------------
 
     type state_type is (
         WAIT_SAMPLE,
@@ -80,21 +77,9 @@ architecture Behavioral of pid_controller is
     signal state : state_type;
 
 
-    --------------------------------------------------------------------
     -- REGISTROS LOCALES DE ENTRADA
-    --
-    -- Se capturan simultáneamente al recibir sample_tick.
-    --
-    -- De este modo:
-    --
-    -- 1. La FSM utiliza parámetros constantes durante todo el cálculo.
-    --
-    -- 2. Los multiplicadores dejan de depender directamente
-    --    de los registros situados dentro del banco AXI.
-    --
-    -- 3. Vivado puede colocar estos registros cerca de la
-    --    lógica aritmética del PID.
-    --------------------------------------------------------------------
+    -- Se capturan simultáneamente al recibir sample_tick
+    -- La FSM utiliza parámetros constantes durante todo el cálculo
 
     signal kp_latched_i :
         signed(31 downto 0);
@@ -114,10 +99,7 @@ architecture Behavioral of pid_controller is
     signal pwm_period_latched_i :
         unsigned(31 downto 0);
 
-
-    --------------------------------------------------------------------
     -- ERROR
-    --------------------------------------------------------------------
 
     signal error_i :
         signed(31 downto 0);
@@ -128,22 +110,16 @@ architecture Behavioral of pid_controller is
     signal error_diff_i :
         signed(31 downto 0);
 
+    --PROPORCIONAL
 
-    --------------------------------------------------------------------
-    -- TÉRMINO PROPORCIONAL
-    --------------------------------------------------------------------
-
-    -- 32 bits x 32 bits = 64 bits
     signal p_product_i :
         signed(63 downto 0);
 
     signal p_term_i :
         signed(63 downto 0);
 
+    -- INTEGRAL
 
-    --------------------------------------------------------------------
-    -- TÉRMINO INTEGRAL
-    --------------------------------------------------------------------
 
     signal i_product_i :
         signed(63 downto 0);
@@ -158,9 +134,7 @@ architecture Behavioral of pid_controller is
         signed(63 downto 0);
 
 
-    --------------------------------------------------------------------
-    -- TÉRMINO DERIVATIVO
-    --------------------------------------------------------------------
+    -- DERIVATIVO
 
     signal d_product_i :
         signed(63 downto 0);
@@ -169,9 +143,7 @@ architecture Behavioral of pid_controller is
         signed(63 downto 0);
 
 
-    --------------------------------------------------------------------
     -- SUMA DEL PID
-    --------------------------------------------------------------------
 
     -- P + I
     signal sum_pi_i :
@@ -181,18 +153,13 @@ architecture Behavioral of pid_controller is
     signal pid_sum_i :
         signed(63 downto 0);
 
-
-    --------------------------------------------------------------------
     -- PERIODO PWM AMPLIADO A 64 BITS
-    --------------------------------------------------------------------
 
     signal pwm_period_s :
         signed(63 downto 0);
 
-
-    --------------------------------------------------------------------
     -- SALIDAS INTERNAS
-    --------------------------------------------------------------------
+
 
     signal duty_i :
         unsigned(31 downto 0);
@@ -212,10 +179,7 @@ architecture Behavioral of pid_controller is
 
 begin
 
-
-    --------------------------------------------------------------------
     -- AMPLIACIÓN DEL PERIODO PWM CAPTURADO
-    --------------------------------------------------------------------
 
     pwm_period_s <=
         signed(
@@ -226,16 +190,12 @@ begin
         );
 
 
-    --------------------------------------------------------------------
     -- MÁQUINA DE ESTADOS + CAMINO DE DATOS
-    --------------------------------------------------------------------
 
     process(clk)
 
-        ----------------------------------------------------------------
-        -- Variables temporales empleadas únicamente para calcular
-        -- el error.
-        ----------------------------------------------------------------
+        -- Variables temporales empleadas únicamente para calcular el error
+
 
         variable speed_ref_v :
             signed(63 downto 0);
@@ -250,19 +210,13 @@ begin
 
         if rising_edge(clk) then
 
-
-            ------------------------------------------------------------
             -- RESET GENERAL
-            ------------------------------------------------------------
 
             if resetn = '0' then
 
                 state <= WAIT_SAMPLE;
 
-
-                --------------------------------------------------------
                 -- Registros locales de entrada
-                --------------------------------------------------------
 
                 kp_latched_i <=
                     (others => '0');
@@ -282,10 +236,7 @@ begin
                 pwm_period_latched_i <=
                     (others => '0');
 
-
-                --------------------------------------------------------
                 -- Error
-                --------------------------------------------------------
 
                 error_i <=
                     (others => '0');
@@ -296,10 +247,7 @@ begin
                 error_diff_i <=
                     (others => '0');
 
-
-                --------------------------------------------------------
                 -- Proporcional
-                --------------------------------------------------------
 
                 p_product_i <=
                     (others => '0');
@@ -307,10 +255,7 @@ begin
                 p_term_i <=
                     (others => '0');
 
-
-                --------------------------------------------------------
                 -- Integral
-                --------------------------------------------------------
 
                 i_product_i <=
                     (others => '0');
@@ -325,9 +270,7 @@ begin
                     (others => '0');
 
 
-                --------------------------------------------------------
                 -- Derivativo
-                --------------------------------------------------------
 
                 d_product_i <=
                     (others => '0');
@@ -335,10 +278,7 @@ begin
                 d_term_i <=
                     (others => '0');
 
-
-                --------------------------------------------------------
                 -- Suma
-                --------------------------------------------------------
 
                 sum_pi_i <=
                     (others => '0');
@@ -346,10 +286,7 @@ begin
                 pid_sum_i <=
                     (others => '0');
 
-
-                --------------------------------------------------------
                 -- Salidas
-                --------------------------------------------------------
 
                 duty_i <=
                     (others => '0');
@@ -366,19 +303,13 @@ begin
                 saturation_low_i <=
                     '0';
 
-
-            ------------------------------------------------------------
             -- PID DESHABILITADO O RESET INTERNO
-            ------------------------------------------------------------
 
             elsif enable = '0' or reset_pid = '1' then
 
                 state <= WAIT_SAMPLE;
 
-
-                --------------------------------------------------------
                 -- Se borran también las entradas capturadas
-                --------------------------------------------------------
 
                 kp_latched_i <=
                     (others => '0');
@@ -398,10 +329,7 @@ begin
                 pwm_period_latched_i <=
                     (others => '0');
 
-
-                --------------------------------------------------------
                 -- Estados internos
-                --------------------------------------------------------
 
                 error_i <=
                     (others => '0');
@@ -442,10 +370,7 @@ begin
                 pid_sum_i <=
                     (others => '0');
 
-
-                --------------------------------------------------------
                 -- Salidas
-                --------------------------------------------------------
 
                 duty_i <=
                     (others => '0');
@@ -462,35 +387,20 @@ begin
                 saturation_low_i <=
                     '0';
 
-
             else
 
-
-                --------------------------------------------------------
-                -- Por defecto pid_update permanece desactivado.
-                --
-                -- Solo se activa durante el estado DONE.
-                --------------------------------------------------------
+                -- Por defecto pid_update permanece desactivado.Solo se activa durante el estado DONE
 
                 pid_update_i <= '0';
 
 
                 case state is
 
-
-                    ----------------------------------------------------
                     -- ESPERA DE UNA NUEVA MUESTRA
-                    ----------------------------------------------------
 
                     when WAIT_SAMPLE =>
 
-
-                        ------------------------------------------------
                         -- Referencia cero
-                        --
-                        -- Se fuerza la parada y se elimina toda
-                        -- memoria acumulada del controlador.
-                        ------------------------------------------------
 
                         if unsigned(speed_ref) = to_unsigned(0, 32) then
 
@@ -548,17 +458,11 @@ begin
                             state <=
                                 WAIT_SAMPLE;
 
-
-                        ------------------------------------------------
                         -- NUEVA MUESTRA
-                        ------------------------------------------------
 
                         elsif sample_tick = '1' then
 
-
-                            --------------------------------------------
-                            -- CAPTURA COHERENTE DE TODAS LAS ENTRADAS
-                            --------------------------------------------
+                            -- CAPTURA DE TODAS LAS ENTRADAS
 
                             kp_latched_i <=
                                 signed(kp);
@@ -579,10 +483,7 @@ begin
                                 unsigned(pwm_period);
 
 
-                            --------------------------------------------
-                            -- Una vez almacenados los parámetros,
-                            -- comienza el cálculo.
-                            --------------------------------------------
+                            -- Una vez almacenados los parámetros, comienza el cálculo
 
                             state <=
                                 CALC_ERROR;
@@ -596,17 +497,11 @@ begin
                         end if;
 
 
-
-                    ----------------------------------------------------
                     -- CÁLCULO DEL ERROR
-                    ----------------------------------------------------
 
                     when CALC_ERROR =>
-
-
-                        ------------------------------------------------
+                            
                         -- Referencia capturada
-                        ------------------------------------------------
 
                         speed_ref_v :=
                             signed(
@@ -616,10 +511,7 @@ begin
                                 )
                             );
 
-
-                        ------------------------------------------------
                         -- Módulo de la velocidad capturada
-                        ------------------------------------------------
 
                         if speed_measured_latched_i(31) = '1' then
 
@@ -639,12 +531,7 @@ begin
 
                         end if;
 
-
-                        ------------------------------------------------
                         -- ERROR
-                        --
-                        -- e(k) = referencia - velocidad
-                        ------------------------------------------------
 
                         error_v :=
                             speed_ref_v -
@@ -661,22 +548,12 @@ begin
                         state <=
                             MULT_P;
 
-
-
-                    ----------------------------------------------------
                     -- MULTIPLICACIÓN PROPORCIONAL
-                    ----------------------------------------------------
 
                     when MULT_P =>
 
 
-                        ------------------------------------------------
                         -- P = Kp * error
-                        --
-                        -- Producto:
-                        --
-                        -- 32 bits × 32 bits = 64 bits
-                        ------------------------------------------------
 
                         p_product_i <=
                             error_i *
@@ -686,20 +563,11 @@ begin
                         state <=
                             SCALE_P;
 
-
-
-                    ----------------------------------------------------
                     -- ESCALADO PROPORCIONAL
-                    ----------------------------------------------------
 
                     when SCALE_P =>
 
-
-                        ------------------------------------------------
                         -- Eliminación del escalado Q16.16:
-                        --
-                        -- división por 2^16
-                        ------------------------------------------------
 
                         p_term_i <=
                             shift_right(
@@ -711,11 +579,7 @@ begin
                         state <=
                             MULT_I;
 
-
-
-                    ----------------------------------------------------
                     -- MULTIPLICACIÓN INTEGRAL
-                    ----------------------------------------------------
 
                     when MULT_I =>
 
@@ -730,9 +594,7 @@ begin
 
 
 
-                    ----------------------------------------------------
                     -- ESCALADO INTEGRAL
-                    ----------------------------------------------------
 
                     when SCALE_I =>
 
@@ -748,18 +610,9 @@ begin
                             ADD_I;
 
 
-
-                    ----------------------------------------------------
                     -- ACUMULACIÓN DE LA INTEGRAL
-                    ----------------------------------------------------
 
                     when ADD_I =>
-
-
-                        ------------------------------------------------
-                        -- I(k) =
-                        -- I(k-1) + Ki*e(k)
-                        ------------------------------------------------
 
                         i_candidate_i <=
                             i_term_i +
@@ -769,19 +622,11 @@ begin
                         state <=
                             LIMIT_I;
 
-
-
-                    ----------------------------------------------------
                     -- ANTI-WINDUP
-                    ----------------------------------------------------
 
                     when LIMIT_I =>
-
-
-                        ------------------------------------------------
-                        -- Se limita la integral al rango aproximado
-                        -- permitido por el actuador.
-                        ------------------------------------------------
+                        
+                        -- Se limita la integral al rango aproximado permitido por el actuador
 
                         if i_candidate_i > pwm_period_s then
 
@@ -806,18 +651,9 @@ begin
                         state <=
                             CALC_D_DIFF;
 
-
-
-                    ----------------------------------------------------
                     -- DIFERENCIA DEL ERROR
-                    ----------------------------------------------------
 
                     when CALC_D_DIFF =>
-
-
-                        ------------------------------------------------
-                        -- e(k) - e(k-1)
-                        ------------------------------------------------
 
                         error_diff_i <=
                             error_i -
@@ -827,11 +663,7 @@ begin
                         state <=
                             MULT_D;
 
-
-
-                    ----------------------------------------------------
                     -- MULTIPLICACIÓN DERIVATIVA
-                    ----------------------------------------------------
 
                     when MULT_D =>
 
@@ -844,11 +676,7 @@ begin
                         state <=
                             SCALE_D;
 
-
-
-                    ----------------------------------------------------
                     -- ESCALADO DERIVATIVO
-                    ----------------------------------------------------
 
                     when SCALE_D =>
 
@@ -863,11 +691,7 @@ begin
                         state <=
                             ADD_PI;
 
-
-
-                    ----------------------------------------------------
                     -- SUMA P + I
-                    ----------------------------------------------------
 
                     when ADD_PI =>
 
@@ -880,11 +704,7 @@ begin
                         state <=
                             ADD_D;
 
-
-
-                    ----------------------------------------------------
                     -- SUMA P + I + D
-                    ----------------------------------------------------
 
                     when ADD_D =>
 
@@ -897,19 +717,13 @@ begin
                         state <=
                             SATURATE_OUTPUT;
 
-
-
-                    ----------------------------------------------------
                     -- SATURACIÓN DE LA SALIDA
-                    ----------------------------------------------------
+
 
                     when SATURATE_OUTPUT =>
 
 
-                        ------------------------------------------------
                         -- SALIDA NEGATIVA
-                        ------------------------------------------------
-
                         if pid_sum_i < to_signed(0, 64) then
 
                             duty_i <=
@@ -922,9 +736,7 @@ begin
                                 '0';
 
 
-                        ------------------------------------------------
                         -- SATURACIÓN SUPERIOR
-                        ------------------------------------------------
 
                         elsif pid_sum_i >= pwm_period_s then
 
@@ -937,10 +749,7 @@ begin
                             saturation_high_i <=
                                 '1';
 
-
-                        ------------------------------------------------
                         -- SALIDA DENTRO DEL RANGO
-                        ------------------------------------------------
 
                         else
 
@@ -957,11 +766,8 @@ begin
                                 '0';
 
                         end if;
-
-
-                        ------------------------------------------------
+                            
                         -- MEMORIA DEL ERROR
-                        ------------------------------------------------
 
                         error_out_i <=
                             error_i;
@@ -973,11 +779,7 @@ begin
                         state <=
                             DONE;
 
-
-
-                    ----------------------------------------------------
                     -- FIN DEL CÁLCULO
-                    ----------------------------------------------------
 
                     when DONE =>
 
@@ -989,11 +791,6 @@ begin
                         state <=
                             WAIT_SAMPLE;
 
-
-
-                    ----------------------------------------------------
-                    -- ESTADO DE SEGURIDAD
-                    ----------------------------------------------------
 
                     when others =>
 
@@ -1011,10 +808,7 @@ begin
     end process;
 
 
-
-    --------------------------------------------------------------------
     -- ASIGNACIÓN DE SALIDAS
-    --------------------------------------------------------------------
 
     duty_out <=
         std_logic_vector(
