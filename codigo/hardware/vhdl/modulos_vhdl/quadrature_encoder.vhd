@@ -15,9 +15,7 @@ end quadrature_encoder;
 
 architecture Behavioral of quadrature_encoder is
 
-    --------------------------------------------------------------------
     -- Sincronización de las señales externas del encoder
-    --------------------------------------------------------------------
 
     -- Primera y segunda etapa de sincronización del canal A
     signal encoder_a_meta : std_logic;
@@ -27,10 +25,7 @@ architecture Behavioral of quadrature_encoder is
     signal encoder_b_meta : std_logic;
     signal encoder_b_sync : std_logic;
 
-
-    --------------------------------------------------------------------
     -- Señales utilizadas para la decodificación en cuadratura
-    --------------------------------------------------------------------
 
     -- Estado anterior de los canales A y B
     signal encoder_a_prev : std_logic;
@@ -50,9 +45,7 @@ architecture Behavioral of quadrature_encoder is
 begin
 
 
-    --------------------------------------------------------------------
     -- SINCRONIZACIÓN DE LAS ENTRADAS DEL ENCODER
-    --------------------------------------------------------------------
 
     process(clk)
     begin
@@ -82,10 +75,7 @@ begin
     end process;
 
 
-
-    --------------------------------------------------------------------
     -- FORMACIÓN DE LA PALABRA DE TRANSICIÓN
-    --------------------------------------------------------------------
 
     -- bits 3..2 = estado anterior AB
     -- bits 1..0 = estado actual AB
@@ -96,10 +86,7 @@ begin
                   encoder_b_sync;
 
 
-
-    --------------------------------------------------------------------
     -- DECODIFICACIÓN DEL ENCODER EN CUADRATURA x4
-    --------------------------------------------------------------------
 
     process(clk)
     begin
@@ -117,15 +104,11 @@ begin
 
             else
 
-                --------------------------------------------------------
                 -- Inicialización
-                --------------------------------------------------------
 
                 if decoder_initialized = '0' then
 
                     -- Se toma el estado actual como estado inicial.
-                    -- De esta forma no se cuenta una transición falsa
-                    -- inmediatamente después del reset.
 
                     encoder_a_prev <= encoder_a_sync;
                     encoder_b_prev <= encoder_b_sync;
@@ -135,15 +118,11 @@ begin
 
                 else
 
-                    ----------------------------------------------------
                     -- Decodificación de las transiciones
-                    ----------------------------------------------------
 
                     case transition is
 
-                        ------------------------------------------------
                         -- Sentido positivo
-                        ------------------------------------------------
 
                         when "0001" |
                              "0111" |
@@ -153,10 +132,7 @@ begin
                             position_count_i <=
                                 position_count_i + to_signed(1, 32);
 
-
-                        ------------------------------------------------
                         -- Sentido negativo
-                        ------------------------------------------------
 
                         when "0010" |
                              "1011" |
@@ -166,10 +142,7 @@ begin
                             position_count_i <=
                                 position_count_i - to_signed(1, 32);
 
-
-                        ------------------------------------------------
                         -- Sin movimiento o transición no válida
-                        ------------------------------------------------
 
                         when others =>
 
@@ -178,9 +151,7 @@ begin
                     end case;
 
 
-                    ----------------------------------------------------
                     -- Actualización del estado anterior
-                    ----------------------------------------------------
 
                     encoder_a_prev <= encoder_a_sync;
                     encoder_b_prev <= encoder_b_sync;
@@ -192,11 +163,7 @@ begin
         end if;
     end process;
 
-
-
-    --------------------------------------------------------------------
     -- SALIDA DEL CONTADOR
-    --------------------------------------------------------------------
 
     position_count <= position_count_i;
 
