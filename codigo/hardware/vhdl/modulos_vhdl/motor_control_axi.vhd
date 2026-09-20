@@ -13,10 +13,7 @@ entity motor_control_axi is
     );
 
     port (
-
-        ----------------------------------------------------------------
         -- ENTRADAS Y SALIDAS DEL SISTEMA DE CONTROL DEL MOTOR
-        ----------------------------------------------------------------
 
         -- Salidas hacia el driver L298N
         pwm_out   : out std_logic;
@@ -26,11 +23,8 @@ entity motor_control_axi is
         -- Entradas procedentes del encoder
         encoder_a : in std_logic;
         encoder_b : in std_logic;
-
-
-        ----------------------------------------------------------------
+        
         -- INTERFAZ AXI4-LITE
-        ----------------------------------------------------------------
 
         s00_axi_aclk    : in  std_logic;
         s00_axi_aresetn : in  std_logic;
@@ -80,9 +74,7 @@ end motor_control_axi;
 architecture arch_imp of motor_control_axi is
 
 
-    --------------------------------------------------------------------
     -- COMPONENTE AXI4-LITE
-    --------------------------------------------------------------------
 
     component motor_control_axi_slave_lite_v1_0_S00_AXI is
 
@@ -135,11 +127,8 @@ architecture arch_imp of motor_control_axi is
             S_AXI_RVALID  : out std_logic;
             S_AXI_RREADY  : in  std_logic;
 
-
-            ------------------------------------------------------------
             -- REGISTROS DE CONFIGURACIÓN
             -- Procesador -> FPGA
-            ------------------------------------------------------------
 
             reg_control     :
                 out std_logic_vector(31 downto 0);
@@ -166,10 +155,8 @@ architecture arch_imp of motor_control_axi is
                 out std_logic_vector(31 downto 0);
 
 
-            ------------------------------------------------------------
             -- REGISTROS DE MONITORIZACIÓN
             -- FPGA -> Procesador
-            ------------------------------------------------------------
 
             status_speed :
                 in std_logic_vector(31 downto 0);
@@ -190,10 +177,7 @@ architecture arch_imp of motor_control_axi is
     end component motor_control_axi_slave_lite_v1_0_S00_AXI;
 
 
-
-    --------------------------------------------------------------------
     -- SEÑALES PROCEDENTES DE LOS REGISTROS AXI
-    --------------------------------------------------------------------
 
     signal reg_control_i :
         std_logic_vector(31 downto 0);
@@ -220,10 +204,7 @@ architecture arch_imp of motor_control_axi is
         std_logic_vector(31 downto 0);
 
 
-
-    --------------------------------------------------------------------
     -- SEÑALES DEL ENCODER Y MEDIDA DE VELOCIDAD
-    --------------------------------------------------------------------
 
     signal encoder_position_i :
         signed(31 downto 0);
@@ -234,14 +215,10 @@ architecture arch_imp of motor_control_axi is
     signal sample_tick_i :
         std_logic;
 
-
-
-    --------------------------------------------------------------------
+-
     -- SEÑALES DEL CONTROLADOR PID
-    --------------------------------------------------------------------
 
     -- Habilitación interna del PID:
-    -- Enable general AND modo automático
     signal pid_enable_i :
         std_logic;
 
@@ -264,11 +241,7 @@ architecture arch_imp of motor_control_axi is
     signal pid_saturation_low_i :
         std_logic;
 
-
-
-    --------------------------------------------------------------------
     -- SELECCIÓN Y LIMITACIÓN DEL DUTY
-    --------------------------------------------------------------------
 
     -- Duty solicitado según el modo de funcionamiento
     signal duty_command_i :
@@ -279,10 +252,7 @@ architecture arch_imp of motor_control_axi is
         std_logic_vector(31 downto 0);
 
 
-
-    --------------------------------------------------------------------
     -- SEÑALES DE MONITORIZACIÓN HACIA AXI
-    --------------------------------------------------------------------
 
     signal status_speed_i :
         std_logic_vector(31 downto 0);
@@ -303,10 +273,7 @@ architecture arch_imp of motor_control_axi is
 
 begin
 
-
-    --------------------------------------------------------------------
     -- INSTANCIA DEL ESCLAVO AXI4-LITE
-    --------------------------------------------------------------------
 
     motor_control_axi_slave_lite_v1_0_S00_AXI_inst :
         motor_control_axi_slave_lite_v1_0_S00_AXI
@@ -350,10 +317,7 @@ begin
             S_AXI_RREADY  => s00_axi_rready,
 
 
-            ------------------------------------------------------------
             -- Configuración
-            ------------------------------------------------------------
-
             reg_control     => reg_control_i,
             reg_pwm_period  => reg_pwm_period_i,
             reg_duty_manual => reg_duty_manual_i,
@@ -366,9 +330,7 @@ begin
             reg_sample_time => reg_sample_time_i,
 
 
-            ------------------------------------------------------------
             -- Monitorización
-            ------------------------------------------------------------
 
             status_speed =>
                 status_speed_i,
@@ -388,9 +350,7 @@ begin
 
 
 
-    --------------------------------------------------------------------
     -- DECODIFICADOR DEL ENCODER EN CUADRATURA
-    --------------------------------------------------------------------
 
     quadrature_encoder_inst :
         entity work.quadrature_encoder
@@ -414,10 +374,7 @@ begin
         );
 
 
-
-    --------------------------------------------------------------------
     -- MEDICIÓN DE VELOCIDAD
-    --------------------------------------------------------------------
 
     speed_measurement_inst :
         entity work.speed_measurement
@@ -447,22 +404,13 @@ begin
         );
 
 
-
-    --------------------------------------------------------------------
     -- HABILITACIÓN DEL PID
-    --------------------------------------------------------------------
-
-    -- CONTROL[0] = Enable
-    -- CONTROL[2] = modo automático
 
     pid_enable_i <=
         reg_control_i(0) and reg_control_i(2);
 
 
-
-    --------------------------------------------------------------------
     -- CONTROLADOR PID
-    --------------------------------------------------------------------
 
     pid_controller_inst :
         entity work.pid_controller
@@ -519,24 +467,14 @@ begin
         );
 
 
-
-    --------------------------------------------------------------------
     -- SELECCIÓN MANUAL / AUTOMÁTICO
-    --------------------------------------------------------------------
-
-    -- CONTROL[2] = 0 -> Duty manual
-    -- CONTROL[2] = 1 -> Duty calculado por PID
 
     duty_command_i <=
         reg_duty_manual_i
         when reg_control_i(2) = '0'
         else pid_duty_i;
 
-
-
-    --------------------------------------------------------------------
     -- LIMITACIÓN FINAL DEL DUTY
-    --------------------------------------------------------------------
 
     -- Motor deshabilitado:
     -- duty aplicado = 0
@@ -557,11 +495,7 @@ begin
 
         else duty_command_i;
 
-
-
-    --------------------------------------------------------------------
     -- GENERADOR PWM
-    --------------------------------------------------------------------
 
     pwm_generator_inst :
         entity work.pwm_generator
@@ -587,14 +521,7 @@ begin
                 pwm_out
         );
 
-
-
-    --------------------------------------------------------------------
     -- CONTROL DEL SENTIDO DE GIRO
-    --------------------------------------------------------------------
-
-    -- CONTROL[0] = Enable
-    -- CONTROL[1] = Dirección
 
     motor_in1 <=
         '1'
@@ -613,11 +540,7 @@ begin
         )
         else '0';
 
-
-
-    --------------------------------------------------------------------
     -- REGISTROS DE MONITORIZACIÓN
-    --------------------------------------------------------------------
 
     -- Velocidad medida
     status_speed_i <=
@@ -625,7 +548,6 @@ begin
 
 
     -- Error del PID.
-    -- En modo manual se devuelve cero.
     status_error_i <=
         std_logic_vector(pid_error_i)
         when reg_control_i(2) = '1'
@@ -641,11 +563,7 @@ begin
     status_encoder_count_i <=
         std_logic_vector(encoder_position_i);
 
-
-
-    --------------------------------------------------------------------
     -- REGISTRO DE ESTADO
-    --------------------------------------------------------------------
 
     -- bit 0 = Enable
     -- bit 1 = Dirección
