@@ -25,8 +25,7 @@ configureTerminator(arduinoSerial, "LF");
 arduinoSerial.Timeout = 4;
 
 % Elimina datos antiguos que pudieran quedar en el buffer.
-% Al abrir el puerto, el Arduino normalmente se reinicia
-% y comienza el ensayo automáticamente.
+
 flush(arduinoSerial);
 
 disp("Puerto COM3 abierto.");
@@ -64,11 +63,9 @@ while true
         break;
     end
 
-    % Intentar interpretar:
     % tiempo_s,duty,pulsos_por_segundo
     valores = sscanf(linea, "%f,%f,%f");
 
-    % La cabecera de texto se ignora automáticamente
     if numel(valores) ~= 3
         continue;
     end
