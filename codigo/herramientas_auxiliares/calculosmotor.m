@@ -1,6 +1,4 @@
 %% IDENTIFICACION DEL CONJUNTO MOTOR-L298N A PARTIR DEL CSV
-% Este programa no se comunica con Arduino ni con la PYNQ-Z2.
-% Unicamente procesa los datos ya guardados durante el ensayo dinamico.
 
 clear;
 clc;
@@ -11,12 +9,10 @@ carpetaScript = fileparts(mfilename('fullpath'));
 
 archivoCSV = fullfile(carpetaScript, 'ensayo_motor_raw.csv');
 
-% Se admite tambien el nombre asignado al descargar una copia del archivo.
 if ~isfile(archivoCSV)
     archivoCSV = fullfile(carpetaScript, 'ensayo_motor_raw(1).csv');
 end
 
-% Si el CSV no esta junto al programa, se permite seleccionarlo manualmente.
 if ~isfile(archivoCSV)
     [nombreCSV, carpetaCSV] = uigetfile('*.csv', ...
         'Selecciona el archivo del ensayo dinamico');
