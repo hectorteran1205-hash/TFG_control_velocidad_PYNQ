@@ -1,6 +1,4 @@
 %% COMPARACION EXPERIMENTAL DE LOS CONTROLADORES P, PI Y PID
-% Lee los tres CSV exportados por la interfaz, calcula metricas comunes y
-% genera una figura preparada para incluirla en la memoria.
 
 clear;
 clc;
@@ -88,7 +86,7 @@ grid on;
 xlim([0, 32]);
 ylim([0, 240]);
 
-% Comparacion de la accion de control.
+% Comparacion de la accion de control
 ejeDuty = nexttile;
 
 plot(datosP.tiempo_s, datosP.duty_percent, ...
@@ -111,7 +109,6 @@ grid on;
 xlim([0, 32]);
 ylim([0, 105]);
 
-% Formato blanco para su inclusion en el documento.
 ejes = [ejeVelocidad, ejeDuty];
 for k = 1:numel(ejes)
     ejes(k).Color = 'w';
@@ -212,7 +209,7 @@ function resultado = calcularMetricas(datos, controlador)
         tiempoFinal = t(indiceFinal);
         valorReferencia = referencia(indiceInicial);
 
-        % Regimen permanente: ultimos tres segundos de cada escalon.
+        % Regimen permanente
         inicioVentana = max(tiempoInicial + 1, tiempoFinal - 3);
         mascaraEstacionaria = ...
             t >= inicioVentana & ...
@@ -223,7 +220,7 @@ function resultado = calcularMetricas(datos, controlador)
         erroresEstacionarios(end+1, 1) = ...
             abs(valorReferencia - velocidadMedia);
 
-        % Sobreimpulso solamente en los cambios ascendentes.
+        % Sobreimpulso solamente en los cambios ascendentes
         esAscendente = tramo == 1 || ...
             valorReferencia > referencia(cambios(tramo-1));
 
@@ -235,7 +232,7 @@ function resultado = calcularMetricas(datos, controlador)
             );
         end
 
-        % Tiempo de establecimiento dentro de una banda del 2 %.
+        % Tiempo de establecimiento dentro de una banda del 2 %
         banda = 0.02 * valorReferencia;
         tiempoTramo = NaN;
 
